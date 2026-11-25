@@ -1,0 +1,111 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_styles.dart';
+import '../../../core/utils/arabicFormat.dart';
+import '../../booking/models/trip_booking.dart';
+import '../../booking/widget/booking_scaffold.dart';
+import '../widget/receipt_sheet.dart';
+import '../widget/ticket_pass_card.dart';
+
+/// PDF page 7: the booked tickets, one page each, with the receipt.
+///
+/// Uses the same direction rules as the other screens, so it is no longer
+/// mirrored like the mock.
+class TicketDetailsScreen extends StatefulWidget {
+  final TripBooking booking;
+
+  const TicketDetailsScreen({super.key, required this.booking});
+
+  @override
+  State<TicketDetailsScreen> createState() => _TicketDetailsScreenState();
+}
+
+class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
+  final PageController _pageController = PageController();
+  // Only the "1 of n" label listens to page changes.
+  final ValueNotifier<int> _currentPage = ValueNotifier(0);
+  late final List<String> _ticketIds = widget.booking.ticketIds;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _currentPage.dispose();
+    super.dispose();
+  }
+
+  void _showReceipt(bool isArabic) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: AppColors.surface,
+      builder: (_) => ReceiptSheet(booking: widget.booking, isArabic: isArabic),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BookingScaffold(
+      bodyBuilder: (context, isArabic) => ListView(
+        padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 24.h),
+        children: [
+          ValueListenableBuilder<int>(
+            valueListenable: _currentPage,
+            builder: (context, page, _) {
+              final current = ArabicFormat.number(page + 1, isArabic: isArabic);
+              final total = ArabicFormat.number(
+                _ticketIds.length,
+                isArabic: isArabic,
+              );
+              return BookingPageTitle(
+                title: isArabic ? 'التذكرة' : 'Ticket',
+                subtitle: isArabic
+                    ? '$current من $total'
+                    : '$current of $total',
+              );
+            },
+          ),
+          SizedBox(height: 18.h),
+          SizedBox(
+            height: 500.h,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: _ticketIds.length,
+              onPageChanged: (page) => _currentPage.value = page,
+              itemBuilder: (context, index) => Padding(
+                padding: EdgeInsets.symmetric(horizontal: 2.w),
+                child: TicketPassCard(
+                  booking: widget.booking,
+                  ticketId: _ticketIds[index],
+                  isArabic: isArabic,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 18.h),
+          OutlinedButton.icon(
+            onPressed: () => _showReceipt(isArabic),
+            icon: Icon(
+              Icons.receipt_long_outlined,
+              size: 20.sp,
+              color: AppColors.primaryRed,
+            ),
+            label: Text(
+              isArabic ? 'الإيصال' : 'Receipt',
+              style: AppStyles.cardTitle.copyWith(fontSize: 15.sp),
+            ),
+            style: OutlinedButton.styleFrom(
+              minimumSize: Size.fromHeight(64.h),
+              backgroundColor: AppColors.surface,
+              side: const BorderSide(color: AppColors.border),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
