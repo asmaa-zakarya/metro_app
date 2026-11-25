@@ -16,17 +16,27 @@ import '../widget/ticket_pass_card.dart';
 class TicketDetailsScreen extends StatefulWidget {
   final TripBooking booking;
 
-  const TicketDetailsScreen({super.key, required this.booking});
+  /// Ticket to show first; the first ticket when null or unknown.
+  final String? initialTicketId;
+
+  const TicketDetailsScreen({
+    super.key,
+    required this.booking,
+    this.initialTicketId,
+  });
 
   @override
   State<TicketDetailsScreen> createState() => _TicketDetailsScreenState();
 }
 
 class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
-  final PageController _pageController = PageController();
-  // Only the "1 of n" label listens to page changes.
-  final ValueNotifier<int> _currentPage = ValueNotifier(0);
   late final List<String> _ticketIds = widget.booking.ticketIds;
+  late final int _initialPage =
+      _ticketIds.indexOf(widget.initialTicketId ?? '').clamp(0, _ticketIds.length);
+  late final PageController _pageController =
+      PageController(initialPage: _initialPage);
+  // Only the "1 of n" label listens to page changes.
+  late final ValueNotifier<int> _currentPage = ValueNotifier(_initialPage);
 
   @override
   void dispose() {

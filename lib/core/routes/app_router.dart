@@ -54,7 +54,6 @@ class AppRouter {
           return RoutesScreen(
             from: extra['from'] as Station,
             to: extra['to'] as Station,
-            initialIsArabic: extra['isArabic'] as bool? ?? true,
           );
         },
       ),
@@ -78,35 +77,39 @@ class AppRouter {
   static final List<GoRoute> _bookingFlowRoutes = [
     _bookingRoute(
       RouteNames.tripDetails,
-      (booking) => TripDetailsScreen(booking: booking),
+      (booking, _) => TripDetailsScreen(booking: booking),
     ),
     _bookingRoute(
       RouteNames.bookingSetup,
-      (booking) => BookingSetupScreen(booking: booking),
+      (booking, _) => BookingSetupScreen(booking: booking),
     ),
     _bookingRoute(
       RouteNames.bookingReview,
-      (booking) => BookingReviewScreen(booking: booking),
+      (booking, _) => BookingReviewScreen(booking: booking),
     ),
     _bookingRoute(
       RouteNames.payment,
-      (booking) => PaymentScreen(booking: booking),
+      (booking, _) => PaymentScreen(booking: booking),
     ),
     _bookingRoute(
       RouteNames.bookingSuccess,
-      (booking) => BookingSuccessScreen(booking: booking),
+      (booking, _) => BookingSuccessScreen(booking: booking),
       requiresPayment: true,
     ),
+    // `?ticket=<id>` opens the pager on that ticket (from the Tickets tab).
     _bookingRoute(
       RouteNames.ticketDetails,
-      (booking) => TicketDetailsScreen(booking: booking),
+      (booking, state) => TicketDetailsScreen(
+        booking: booking,
+        initialTicketId: state.uri.queryParameters['ticket'],
+      ),
       requiresPayment: true,
     ),
   ];
 
   static GoRoute _bookingRoute(
     String path,
-    Widget Function(TripBooking booking) screen, {
+    Widget Function(TripBooking booking, GoRouterState state) screen, {
     bool requiresPayment = false,
   }) {
     return GoRoute(
@@ -119,7 +122,7 @@ class AppRouter {
             (!requiresPayment || extra.bookingNumber != null);
         return isValid ? null : RouteNames.home;
       },
-      builder: (context, state) => screen(state.extra as TripBooking),
+      builder: (context, state) => screen(state.extra as TripBooking, state),
     );
   }
 }

@@ -8,6 +8,7 @@ import '../../../core/theme/app_styles.dart';
 import '../../../core/utils/arabicFormat.dart';
 import '../../tickets/screens/ticket.dart';
 import '../../tickets/screens/ticketsData.dart';
+import '../models/paid_bookings.dart';
 import '../models/trip_booking.dart';
 import '../widget/booking_scaffold.dart';
 import '../widget/booking_stepper.dart';
@@ -40,7 +41,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
       bookingNumber: TripBooking.newBookingNumber(DateTime.now()),
     );
 
-    // The Tickets tab reads this list.
+    // The Tickets tab lists these tickets and reopens each one's QR screen
+    // through PaidBookings.
+    PaidBookings.add(paid);
     for (final ticketId in paid.ticketIds) {
       TicketsData.add(
         Ticket(

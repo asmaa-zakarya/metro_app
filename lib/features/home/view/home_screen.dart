@@ -8,7 +8,6 @@ import 'package:metro_app/features/home/view/widgets/station_sheet.dart';
 import 'package:metro_app/features/home/view/widgets/trip_card.dart';
 import '../../../core/routes/route_names.dart';
 import '../../../core/constants/app_language.dart';
-import '../../../core/routes/booking_arguments.dart';
 import '../../../core/theme/app_assets.dart';
 import '../../../shared/widgets/custom_app_bar.dart';
 import '../../../shared/widgets/main_navigation_shell.dart';
@@ -137,7 +136,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             onShowRoutes: () {
                               context.push(
                                 RouteNames.booking,
-                                extra: BookingArguments(from: _pickupStation!, to: _arrivalStation!,),
+                                // The /booking route expects a Map with both stations.
+                                extra: {'from': _pickupStation!, 'to': _arrivalStation!},
                               );
                             },
                           ),
