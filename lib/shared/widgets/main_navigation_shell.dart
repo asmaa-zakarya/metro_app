@@ -1,5 +1,5 @@
 // lib/shared/widgets/main_navigation_shell.dart
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_styles.dart';
