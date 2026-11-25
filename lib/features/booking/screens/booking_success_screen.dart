@@ -19,6 +19,18 @@ class BookingSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Payment replaced the whole stack, so this is the only page. The Android
+    // Back button would otherwise close the app; send it Home instead.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) context.go(RouteNames.home);
+      },
+      child: _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return BookingScaffold(
       // The flow is finished; Back leads Home rather than to the payment.
       onBack: () => context.go(RouteNames.home),
