@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:metro_app/features/tickets/screens/ticket.dart';
 import 'package:metro_app/features/tickets/screens/ticketCard.dart';
 
+import '../../../core/constants/app_language.dart';
 import '../../../core/routes/route_names.dart';
 import '../../../core/theme/app_assets.dart';
+import '../../booking/models/paid_bookings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_styles.dart';
 import '../../../shared/widgets/custom_app_bar.dart';
@@ -24,7 +26,18 @@ class TicketsScreen extends StatefulWidget {
 }
 
 class _TicketsScreenState extends State<TicketsScreen> {
-  bool _isArabic = true;
+  // Follows the app-wide language like the other screens.
+  bool get _isArabic => AppLanguage.isArabic.value;
+
+  /// Tickets paid through the booking flow reopen their QR screen.
+  VoidCallback? _openTicket(Ticket ticket) {
+    final booking = PaidBookings.forTicket(ticket.id);
+    if (booking == null) return null;
+    return () => context.push(
+          '${RouteNames.ticketDetails}?ticket=${ticket.id}',
+          extra: booking,
+        );
+  }
 
   void _onNavTap(int index) {
     switch (index) {
@@ -65,7 +78,8 @@ class _TicketsScreenState extends State<TicketsScreen> {
         appBar: CustomAppBar(
           isArabic: _isArabic,
           logoAssetPath: AppAssets.cairoMetroIcon,
-          onLanguageChanged: (val) => setState(() => _isArabic = val),
+          onLanguageChanged: (val) =>
+              setState(() => AppLanguage.isArabic.value = val),
         ),
         body: ListView(
           padding: EdgeInsets.fromLTRB(20.w, 18.h, 20.w, 24.h),
@@ -95,7 +109,11 @@ class _TicketsScreenState extends State<TicketsScreen> {
               ),
               for (final ticket in tickets) ...[
                 SizedBox(height: 9.h),
-                TicketCard(ticket: ticket, isArabic: _isArabic),
+                TicketCard(
+                  ticket: ticket,
+                  isArabic: _isArabic,
+                  onTap: _openTicket(ticket),
+                ),
               ],
             ],
           ],
