@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/home/models/station.dart';
+import '../../features/booking/screens/booking_screen.dart';
+import 'booking_arguments.dart';
 import '../../features/home/view/home_screen.dart';
 import '../../features/metro_map/map_screen.dart';
+import '../../features/tickets/screens/tickets_screen.dart';
+import '../../features/settings/screens/settings_screen.dart';
 import 'route_names.dart';
 
 class AppRouter {
@@ -25,29 +28,21 @@ class AppRouter {
         path: RouteNames.booking,
         name: RouteNames.booking,
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>?;
-          final from = extra?['from'] as Station?;
-          final to = extra?['to'] as Station?;
-          return Scaffold(
-            body: Center(
-              child: Text('Booking: ${from?.nameAr} -> ${to?.nameAr}'),
-            ),
-          );
+          final arguments = state.extra is BookingArguments
+              ? state.extra as BookingArguments
+              : null;
+          return BookingScreen(arguments: arguments);
         },
       ),
       GoRoute(
         path: RouteNames.ticket,
         name: RouteNames.ticket,
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Tickets Screen')),
-        ),
+        builder: (context, state) => const TicketsScreen(),
       ),
       GoRoute(
         path: RouteNames.settings,
         name: RouteNames.settings,
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Settings Screen')),
-        ),
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );

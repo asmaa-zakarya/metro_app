@@ -7,6 +7,8 @@ import 'package:metro_app/features/home/view/widgets/nearest_card.dart';
 import 'package:metro_app/features/home/view/widgets/station_sheet.dart';
 import 'package:metro_app/features/home/view/widgets/trip_card.dart';
 import '../../../core/routes/route_names.dart';
+import '../../../core/constants/app_language.dart';
+import '../../../core/routes/booking_arguments.dart';
 import '../../../core/theme/app_assets.dart';
 import '../../../shared/widgets/custom_app_bar.dart';
 import '../../../shared/widgets/main_navigation_shell.dart';
@@ -20,14 +22,25 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool _isArabic = true;
+  bool _isArabic = AppLanguage.isArabic.value;
   bool _isNearestExpanded = false;
   Station? _pickupStation;
   Station? _arrivalStation;
   final ScrollController _scrollController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    AppLanguage.isArabic.addListener(_handleLanguageChanged);
+  }
+
+  void _handleLanguageChanged() {
+    if (mounted) setState(() => _isArabic = AppLanguage.isArabic.value);
+  }
+
+  @override
   void dispose() {
+    AppLanguage.isArabic.removeListener(_handleLanguageChanged);
     _scrollController.dispose();
     super.dispose();
   }
@@ -94,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: CustomAppBar(
           isArabic: _isArabic,
           logoAssetPath: AppAssets.cairoMetroIcon,
-          onLanguageChanged: (val) => setState(() => _isArabic = val),
+          onLanguageChanged: (val) => AppLanguage.isArabic.value = val,
         ),
         body: Directionality(
           textDirection: scrollbarDirection,
@@ -124,10 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onShowRoutes: () {
                               context.push(
                                 RouteNames.booking,
-                                extra: {
-                                  'from': _pickupStation,
-                                  'to': _arrivalStation,
-                                },
+                                extra: BookingArguments(from: _pickupStation!, to: _arrivalStation!),
                               );
                             },
                           ),

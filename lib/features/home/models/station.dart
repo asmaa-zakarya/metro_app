@@ -1,10 +1,14 @@
+
 class Station {
   final String id;
   final String nameAr;
   final String nameEn;
   final List<int> lines;
-  final double lat;
-  final double lng;
+
+  // Coordinates are nullable until verified.
+  final double? lat;
+  final double? lng;
+
   final double? distanceKm;
 
   const Station({
@@ -12,12 +16,14 @@ class Station {
     required this.nameAr,
     required this.nameEn,
     required this.lines,
-    required this.lat,
-    required this.lng,
+    this.lat,
+    this.lng,
     this.distanceKm,
   });
 
   bool get isInterchange => lines.length > 1;
+
+  bool get hasCoordinates => lat != null && lng != null;
 
   Station copyWith({double? distanceKm}) {
     return Station(

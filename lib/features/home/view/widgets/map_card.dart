@@ -64,8 +64,11 @@ class MapCard extends StatelessWidget {
                     ],
                   ),
                 ),
+
                 Icon(
-                  Icons.chevron_left_rounded,
+                  isArabic
+                      ? Icons.arrow_back_ios_new_rounded
+                      : Icons.arrow_forward_ios_rounded,
                   color: AppColors.textMuted,
                   size: 22.sp,
                 ),

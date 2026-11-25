@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../core/theme/app_assets.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -19,6 +21,7 @@ class OfficialMapCard extends StatefulWidget {
 class _OfficialMapCardState extends State<OfficialMapCard> {
   final TransformationController _transformationController =
   TransformationController();
+
   double _scale = 1.0;
 
   static const double _minScale = 1.0;
@@ -32,21 +35,45 @@ class _OfficialMapCardState extends State<OfficialMapCard> {
   }
 
   void _setScale(double newScale) {
-    final clamped = newScale.clamp(_minScale, _maxScale);
+    final clampedScale = newScale.clamp(_minScale, _maxScale);
+
+    final currentMatrix = _transformationController.value;
+
+    final currentTranslation = currentMatrix.getTranslation();
+
+    final currentScale = currentMatrix.getMaxScaleOnAxis();
+
+    if (currentScale == 0) return;
+
+    final scaleFactor = clampedScale / currentScale;
+
+    final newMatrix = Matrix4.identity()
+      ..translate(
+        currentTranslation.x,
+        currentTranslation.y,
+      )
+      ..scale(clampedScale);
+
     setState(() {
-      _scale = clamped;
-      _transformationController.value = Matrix4.identity()..scale(clamped);
+      _scale = clampedScale;
+      _transformationController.value = newMatrix;
     });
   }
 
-  void _zoomIn() => _setScale(_scale + _step);
+  void _zoomIn() {
+    _setScale(_scale + _step);
+  }
 
-  void _zoomOut() => _setScale(_scale - _step);
+  void _zoomOut() {
+    _setScale(_scale - _step);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final mapImage =
-    widget.isArabic ? AppAssets.cairoMetroMap : AppAssets.cairoMetroMapEn;
+    final mapImage = widget.isArabic
+        ? AppAssets.cairoMetroMap
+        : AppAssets.cairoMetroMapEn;
+
     final zoomPercent = '${(_scale * 100).round()}%';
 
     return Expanded(
@@ -119,10 +146,17 @@ class _OfficialMapCardState extends State<OfficialMapCard> {
                   transformationController: _transformationController,
                   minScale: _minScale,
                   maxScale: _maxScale,
+                  boundaryMargin: const EdgeInsets.all(20),
                   onInteractionEnd: (_) {
-                    final currentScale =
-                    _transformationController.value.getMaxScaleOnAxis();
-                    setState(() => _scale = currentScale);
+                    final currentScale = _transformationController.value
+                        .getMaxScaleOnAxis();
+
+                    setState(() {
+                      _scale = currentScale.clamp(
+                        _minScale,
+                        _maxScale,
+                      );
+                    });
                   },
                   child: Center(
                     child: Image.asset(
@@ -133,7 +167,9 @@ class _OfficialMapCardState extends State<OfficialMapCard> {
                           widget.isArabic
                               ? 'تعذر تحميل الخريطة'
                               : 'Failed to load map',
-                          style: GoogleFonts.cairo(color: AppColors.textMuted),
+                          style: GoogleFonts.cairo(
+                            color: AppColors.textMuted,
+                          ),
                         ),
                       ),
                     ),
