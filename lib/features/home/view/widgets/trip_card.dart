@@ -1,9 +1,10 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_styles.dart';
 import '../../models/station.dart';
-
 import 'line_badge.dart';
 
 class TripCard extends StatelessWidget {
@@ -30,6 +31,23 @@ class TripCard extends StatelessWidget {
       pickupStation != null &&
           arrivalStation != null &&
           pickupStation!.id != arrivalStation!.id;
+
+  Color _getStationColor(Station? station) {
+    if (station == null || station.lines.isEmpty) {
+      return AppColors.activeBlue;
+    }
+
+    switch (station.lines.first) {
+      case 1:
+        return AppColors.line1;
+      case 2:
+        return AppColors.line2;
+      case 3:
+        return AppColors.line3;
+      default:
+        return AppColors.activeBlue;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +76,7 @@ class TripCard extends StatelessWidget {
                     hintLabel: isArabic ? 'محطة الركوب' : 'Pickup',
                     station: pickupStation,
                     isArabic: isArabic,
-                    dotColor: AppColors.activeBlue,
+                    dotColor: _getStationColor(pickupStation),
                     onTap: onPickPickup,
                   ),
                   SizedBox(height: 6.h),
@@ -66,7 +84,7 @@ class TripCard extends StatelessWidget {
                     hintLabel: isArabic ? 'محطة الوصول' : 'Arrival',
                     station: arrivalStation,
                     isArabic: isArabic,
-                    dotColor: AppColors.line3,
+                    dotColor: _getStationColor(arrivalStation),
                     onTap: onPickArrival,
                   ),
                 ],
@@ -115,7 +133,9 @@ class TripCard extends StatelessWidget {
                 children: [
                   Text(
                     isArabic ? 'عرض الطرق' : 'Show Routes',
-                    style: AppStyles.buttonLabel.copyWith(fontSize: 13.5.sp),
+                    style: AppStyles.buttonLabel.copyWith(
+                      fontSize: 13.5.sp,
+                    ),
                   ),
                   SizedBox(width: 6.w),
                   Icon(
@@ -142,7 +162,9 @@ class TripCard extends StatelessWidget {
                 isArabic
                     ? 'يُحسب السعر والوقت وفقاً لتفاصيل الرحلة.'
                     : 'Fare and time are calculated per trip details.',
-                style: AppStyles.bodyMuted.copyWith(fontSize: 10.5.sp),
+                style: AppStyles.bodyMuted.copyWith(
+                  fontSize: 10.5.sp,
+                ),
               ),
             ],
           ),
@@ -170,20 +192,28 @@ class _CompactStationRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasStation = station != null;
+
     final text = hasStation
         ? (isArabic ? station!.nameAr : station!.nameEn)
-        : (isArabic ? '$hintLabel — اختر محطة' : '$hintLabel — Select station');
+        : (isArabic
+        ? '$hintLabel — اختر محطة'
+        : '$hintLabel — Select station');
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(11.r),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 11.w, vertical: 10.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: 11.w,
+          vertical: 10.h,
+        ),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(11.r),
           border: Border.all(
-            color: hasStation ? dotColor.withValues(alpha: 0.45) : AppColors.border,
+            color: hasStation
+                ? dotColor.withValues(alpha: 0.45)
+                : AppColors.border,
           ),
         ),
         child: Row(
@@ -194,7 +224,10 @@ class _CompactStationRow extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: hasStation ? dotColor : Colors.transparent,
-                border: Border.all(color: dotColor, width: 2.w),
+                border: Border.all(
+                  color: dotColor,
+                  width: 2.w,
+                ),
               ),
             ),
             SizedBox(width: 8.w),
@@ -204,19 +237,28 @@ class _CompactStationRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: AppStyles.cardTitle.copyWith(
                   fontSize: 13.sp,
-                  fontWeight: hasStation ? FontWeight.w700 : FontWeight.w500,
-                  color: hasStation ? AppColors.textDark : AppColors.textMuted,
+                  fontWeight: hasStation
+                      ? FontWeight.w700
+                      : FontWeight.w500,
+                  color: hasStation
+                      ? AppColors.textDark
+                      : AppColors.textMuted,
                 ),
               ),
             ),
             if (hasStation && station!.lines.isNotEmpty) ...[
-              LineBadge(lineNumber: station!.lines.first, isArabic: isArabic),
+              LineBadge(
+                lineNumber: station!.lines.first,
+                isArabic: isArabic,
+              ),
               SizedBox(width: 4.w),
             ],
             Icon(
-              Icons.chevron_left_rounded,
+              isArabic
+                  ? Icons.arrow_back_ios_new_rounded
+                  : Icons.arrow_forward_ios_rounded,
               color: AppColors.textMuted,
-              size: 18.sp,
+              size: 15.sp,
             ),
           ],
         ),

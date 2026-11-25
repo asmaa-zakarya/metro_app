@@ -1,6 +1,9 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_styles.dart';
 import '../../data/station_data.dart';
@@ -43,7 +46,11 @@ class _NearestCardState extends State<NearestCard> {
     });
 
     try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      final serviceEnabled =
+      await Geolocator.isLocationServiceEnabled();
+
+      if (!mounted) return;
+
       if (!serviceEnabled) {
         setState(() {
           _loading = false;
@@ -55,9 +62,12 @@ class _NearestCardState extends State<NearestCard> {
       }
 
       var permission = await Geolocator.checkPermission();
+
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
+
+      if (!mounted) return;
 
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
@@ -76,18 +86,22 @@ class _NearestCardState extends State<NearestCard> {
         ),
       );
 
+      if (!mounted) return;
+
       final nearest = StationsData.nearestFromLocation(
         position.latitude,
         position.longitude,
       );
 
       if (!mounted) return;
+
       setState(() {
         _nearestStations = nearest;
         _loading = false;
       });
     } catch (_) {
       if (!mounted) return;
+
       setState(() {
         _loading = false;
         _statusMessage = widget.isArabic
@@ -97,9 +111,99 @@ class _NearestCardState extends State<NearestCard> {
     }
   }
 
+  Future<void> _openAppSettings() async {
+    try {
+      final opened = await Geolocator.openAppSettings();
+
+      if (!opened && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.isArabic
+                  ? 'تعذر فتح إعدادات التطبيق'
+                  : 'Could not open app settings',
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.isArabic
+                ? 'حدث خطأ أثناء فتح إعدادات التطبيق'
+                : 'An error occurred while opening app settings',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handlePermissionRetry() async {
+    final permission = await Geolocator.checkPermission();
+
+    if (!mounted) return;
+
+    if (permission == LocationPermission.deniedForever) {
+      await _openAppSettings();
+    } else {
+      await _loadNearestStations();
+    }
+  }
+
+  Future<void> _openGoogleMaps(Station station) async {
+    final stationName =
+    widget.isArabic ? station.nameAr : station.nameEn;
+
+    final query = '$stationName Cairo Metro station Egypt';
+
+    final uri = Uri.https(
+      'www.google.com',
+      '/maps/search/',
+      <String, String>{
+        'api': '1',
+        'query': query,
+      },
+    );
+
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.isArabic
+                  ? 'تعذر فتح Google Maps'
+                  : 'Could not open Google Maps',
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.isArabic
+                ? 'حدث خطأ أثناء فتح Google Maps'
+                : 'An error occurred while opening Google Maps',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final closest = _nearestStations.isNotEmpty ? _nearestStations.first : null;
+    final closest =
+    _nearestStations.isNotEmpty ? _nearestStations.first : null;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),
@@ -113,13 +217,19 @@ class _NearestCardState extends State<NearestCard> {
           InkWell(
             onTap: () {
               widget.onToggle();
-              if (!widget.isExpanded && _nearestStations.isEmpty && !_loading) {
+
+              if (!widget.isExpanded &&
+                  _nearestStations.isEmpty &&
+                  !_loading) {
                 _loadNearestStations();
               }
             },
             borderRadius: BorderRadius.circular(14.r),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+              padding: EdgeInsets.symmetric(
+                horizontal: 14.w,
+                vertical: 14.h,
+              ),
               child: Row(
                 children: [
                   Container(
@@ -134,33 +244,46 @@ class _NearestCardState extends State<NearestCard> {
                       size: 20.sp,
                     ),
                   ),
+
                   SizedBox(width: 12.w),
+
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.isArabic ? 'المحطات الأقرب إليّ' : 'Nearest Stations',
-                          style: AppStyles.cardTitle.copyWith(fontSize: 14.sp),
+                          widget.isArabic
+                              ? 'المحطات الأقرب إليّ'
+                              : 'Nearest Stations',
+                          style: AppStyles.cardTitle.copyWith(
+                            fontSize: 14.sp,
+                          ),
                         ),
+
                         SizedBox(height: 2.h),
+
                         Text(
                           closest != null
                               ? (widget.isArabic
-                              ? 'الأقرب: ${closest.nameAr} (${closest.distanceKm} كم)'
-                              : 'Closest: ${closest.nameEn} (${closest.distanceKm} km)')
+                              ? 'الأقرب: ${closest.nameAr} (${closest.distanceKm!.toStringAsFixed(1)} كم)'
+                              : 'Closest: ${closest.nameEn} (${closest.distanceKm!.toStringAsFixed(1)} km)')
                               : (widget.isArabic
                               ? 'استخدم موقعك لعرض أقرب المحطات'
                               : 'Use your location to show nearest stations'),
                           style: AppStyles.bodyMuted.copyWith(
                             fontSize: 11.sp,
-                            color: closest != null ? AppColors.activeBlue : AppColors.textMuted,
-                            fontWeight: closest != null ? FontWeight.w600 : FontWeight.w400,
+                            color: closest != null
+                                ? AppColors.activeBlue
+                                : AppColors.textMuted,
+                            fontWeight: closest != null
+                                ? FontWeight.w600
+                                : FontWeight.w400,
                           ),
                         ),
                       ],
                     ),
                   ),
+
                   IconButton(
                     onPressed: _loadNearestStations,
                     icon: Icon(
@@ -168,8 +291,11 @@ class _NearestCardState extends State<NearestCard> {
                       color: AppColors.activeBlue,
                       size: 20.sp,
                     ),
-                    tooltip: widget.isArabic ? 'تحديث الموقع' : 'Refresh location',
+                    tooltip: widget.isArabic
+                        ? 'تحديث الموقع'
+                        : 'Refresh location',
                   ),
+
                   Icon(
                     widget.isExpanded
                         ? Icons.keyboard_arrow_up_rounded
@@ -181,12 +307,19 @@ class _NearestCardState extends State<NearestCard> {
               ),
             ),
           ),
+
           if (widget.isExpanded) ...[
-            const Divider(height: 1, color: AppColors.border),
+            const Divider(
+              height: 1,
+              color: AppColors.border,
+            ),
+
             if (_loading)
               Padding(
                 padding: EdgeInsets.all(16.w),
-                child: const CircularProgressIndicator(strokeWidth: 2.2),
+                child: const CircularProgressIndicator(
+                  strokeWidth: 2.2,
+                ),
               )
             else if (_statusMessage != null)
               Padding(
@@ -196,13 +329,19 @@ class _NearestCardState extends State<NearestCard> {
                     Text(
                       _statusMessage!,
                       textAlign: TextAlign.center,
-                      style: AppStyles.bodyMuted.copyWith(fontSize: 12.sp),
+                      style: AppStyles.bodyMuted.copyWith(
+                        fontSize: 12.sp,
+                      ),
                     ),
+
                     SizedBox(height: 8.h),
+
                     TextButton(
-                      onPressed: _loadNearestStations,
+                      onPressed: _handlePermissionRetry,
                       child: Text(
-                        widget.isArabic ? 'إعادة المحاولة' : 'Try Again',
+                        widget.isArabic
+                            ? 'إعادة المحاولة'
+                            : 'Try Again',
                         style: AppStyles.cardTitle.copyWith(
                           color: AppColors.activeBlue,
                           fontSize: 12.5.sp,
@@ -212,57 +351,123 @@ class _NearestCardState extends State<NearestCard> {
                   ],
                 ),
               )
-            else
-              ..._nearestStations.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final station = entry.value;
-                final isClosest = idx == 0;
+            else if (_nearestStations.isEmpty)
+                Padding(
+                  padding: EdgeInsets.all(14.w),
+                  child: Text(
+                    widget.isArabic
+                        ? 'قائمة المحطات كاملة، لكن إحداثيات بعض المحطات ما زالت تحتاج مراجعة. أقرب المحطات تُحسب حاليًا من المحطات المتوفر لها موقع.'
+                        : 'The station list is complete, but some station coordinates still need verification. Nearest stations are calculated only for stations with coordinates.',
+                    textAlign: TextAlign.center,
+                    style: AppStyles.bodyMuted.copyWith(
+                      fontSize: 11.5.sp,
+                    ),
+                  ),
+                )
+              else
+                ..._nearestStations.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final station = entry.value;
+                  final isClosest = idx == 0;
 
-                return InkWell(
-                  onTap: () => widget.onSelectStation(station),
-                  child: Container(
-                    color: isClosest
-                        ? AppColors.activeBlue.withValues(alpha: 0.05)
-                        : Colors.transparent,
-                    padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
-                    child: Row(
-                      children: [
-                        Icon(
-                          isClosest ? Icons.near_me_rounded : Icons.location_on_outlined,
-                          color: isClosest ? AppColors.activeBlue : AppColors.primaryRed,
-                          size: 18.sp,
-                        ),
-                        SizedBox(width: 10.w),
-                        Expanded(
-                          child: Row(
+                  return InkWell(
+                    onTap: () => widget.onSelectStation(station),
+                    child: Container(
+                      color: isClosest
+                          ? AppColors.activeBlue.withValues(alpha: 0.05)
+                          : Colors.transparent,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 14.w,
+                        vertical: 10.h,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isClosest
+                                ? Icons.near_me_rounded
+                                : Icons.location_on_outlined,
+                            color: isClosest
+                                ? AppColors.activeBlue
+                                : AppColors.primaryRed,
+                            size: 18.sp,
+                          ),
+
+                          SizedBox(width: 10.w),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  widget.isArabic
+                                      ? station.nameAr
+                                      : station.nameEn,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppStyles.cardTitle.copyWith(
+                                    fontSize: 13.5.sp,
+                                  ),
+                                ),
+
+                                SizedBox(height: 4.h),
+
+                                Wrap(
+                                  spacing: 4.w,
+                                  runSpacing: 3.h,
+                                  children: station.lines.map((line) {
+                                    return LineBadge(
+                                      lineNumber: line,
+                                      isArabic: widget.isArabic,
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          SizedBox(width: 6.w),
+
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                widget.isArabic ? station.nameAr : station.nameEn,
-                                style: AppStyles.cardTitle.copyWith(fontSize: 13.5.sp),
+                                widget.isArabic
+                                    ? '${station.distanceKm!.toStringAsFixed(1)} كم'
+                                    : '${station.distanceKm!.toStringAsFixed(1)} km',
+                                style: AppStyles.bodyMuted.copyWith(
+                                  color: AppColors.activeBlue,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12.sp,
+                                ),
                               ),
-                              SizedBox(width: 8.w),
-                              LineBadge(
-                                lineNumber: station.lines.first,
-                                isArabic: widget.isArabic,
+
+                              SizedBox(width: 2.w),
+
+                              IconButton(
+                                onPressed: () => _openGoogleMaps(station),
+                                tooltip: widget.isArabic
+                                    ? 'فتح المحطة في Google Maps'
+                                    : 'Open station in Google Maps',
+                                constraints: BoxConstraints(
+                                  minWidth: 32.w,
+                                  minHeight: 32.h,
+                                ),
+                                padding: EdgeInsets.all(4.w),
+                                visualDensity: VisualDensity.compact,
+                                icon: Icon(
+                                  Icons.map_outlined,
+                                  color: AppColors.primaryRed,
+                                  size: 20.sp,
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                        Text(
-                          widget.isArabic
-                              ? '${station.distanceKm} كم'
-                              : '${station.distanceKm} km',
-                          style: AppStyles.bodyMuted.copyWith(
-                            color: AppColors.activeBlue,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
           ],
         ],
       ),

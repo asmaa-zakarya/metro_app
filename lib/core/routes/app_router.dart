@@ -8,6 +8,11 @@ import '../../features/metro_map/map_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/tickets/screens/ticketsData.dart';
 import '../../features/tickets/screens/tickets_screen.dart';
+import 'booking_arguments.dart';
+import '../../features/home/view/home_screen.dart';
+import '../../features/metro_map/map_screen.dart';
+import '../../features/tickets/screens/tickets_screen.dart';
+import '../../features/settings/screens/settings_screen.dart';
 import 'route_names.dart';
 
 class AppRouter {
@@ -38,20 +43,16 @@ class AppRouter {
           return valid ? null : RouteNames.home;
         },
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
-          return RoutesScreen(
-            from: extra['from'] as Station,
-            to: extra['to'] as Station,
-            initialIsArabic: extra['isArabic'] as bool? ?? true,
-          );
+          final arguments = state.extra is BookingArguments
+              ? state.extra as BookingArguments
+              : null;
+          return BookingScreen(arguments: arguments);
         },
       ),
       GoRoute(
         path: RouteNames.ticket,
         name: RouteNames.ticket,
-        // فاضية لحد ما المستخدم يحجز
-        builder: (context, state) =>
-            TicketsScreen(tickets: List.of(TicketsData.booked)),
+        builder: (context, state) => const TicketsScreen(),
       ),
       GoRoute(
         path: RouteNames.settings,
