@@ -43,17 +43,20 @@ class AppRouter {
           return valid ? null : RouteNames.home;
         },
         builder: (context, state) {
-          final arguments = state.extra is BookingArguments
-              ? state.extra as BookingArguments
-              : null;
-          return BookingScreen(arguments: arguments);
+          final extra = state.extra as Map<String, dynamic>;
+          return RoutesScreen(
+            from: extra['from'] as Station,
+            to: extra['to'] as Station,
+            initialIsArabic: extra['isArabic'] as bool? ?? true,
+          );
         },
       ),
       GoRoute(
         path: RouteNames.ticket,
         name: RouteNames.ticket,
-        builder: (context, state) => const TicketsScreen(),
-      ),
+        // فاضية لحد ما المستخدم يحجز
+        builder: (context, state) =>
+            TicketsScreen(tickets: List.of(TicketsData.booked)),      ),
       GoRoute(
         path: RouteNames.settings,
         name: RouteNames.settings,

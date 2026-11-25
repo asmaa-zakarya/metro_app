@@ -137,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onShowRoutes: () {
                               context.push(
                                 RouteNames.booking,
-                                extra: BookingArguments(from: _pickupStation!, to: _arrivalStation!),
+                                extra: BookingArguments(from: _pickupStation!, to: _arrivalStation!,),
                               );
                             },
                           ),
