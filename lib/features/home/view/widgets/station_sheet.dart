@@ -68,6 +68,11 @@ class _StationSheetState extends State<StationSheet> {
                       widget.isArabic ? 'اختر ${widget.title}' : 'Select ${widget.title}',
                       style: AppStyles.cardTitle.copyWith(fontSize: 18.sp),
                     ),
+                    SizedBox(height: 3.h),
+                    Text(
+                      widget.isArabic ? '${StationsData.all.length} محطة متاحة' : '${StationsData.all.length} stations available',
+                      style: AppStyles.bodyMuted.copyWith(fontSize: 10.5.sp),
+                    ),
                   ],
                 ),
                 InkWell(
@@ -106,7 +111,14 @@ class _StationSheetState extends State<StationSheet> {
             ),
           ),
           Expanded(
-            child: ListView.separated(
+            child: filtered.isEmpty
+                ? Center(
+                    child: Text(
+                      widget.isArabic ? 'مفيش محطة بالاسم ده' : 'No station found',
+                      style: AppStyles.bodyMuted.copyWith(fontSize: 13.sp),
+                    ),
+                  )
+                : ListView.separated(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
               itemCount: filtered.length,
               separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.border),
