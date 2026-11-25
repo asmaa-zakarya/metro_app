@@ -1,3 +1,4 @@
+// lib/shared/widgets/main_navigation_shell.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../core/theme/app_colors.dart';
@@ -55,8 +56,7 @@ class MainNavigation extends StatelessWidget {
             children: List.generate(items.length, (index) {
               final item = items[index];
               final isSelected = currentIndex == index;
-              final activeColor =
-              index == 0 ? AppColors.primaryRed : AppColors.activeBlue;
+              const activeColor = AppColors.primaryRed;
 
               return Expanded(
                 child: InkWell(

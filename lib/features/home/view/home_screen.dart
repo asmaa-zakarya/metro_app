@@ -127,6 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 extra: {
                                   'from': _pickupStation,
                                   'to': _arrivalStation,
+                                  'isArabic': _isArabic,
                                 },
                               );
                             },
