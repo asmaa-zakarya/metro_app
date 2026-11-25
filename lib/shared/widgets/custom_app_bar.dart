@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_styles.dart';
 
@@ -7,11 +8,15 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final ValueChanged<bool> onLanguageChanged;
   final String? logoAssetPath;
 
+  /// When set, shows a back button at the start and centers the brand.
+  final VoidCallback? onBack;
+
   const CustomAppBar({
     super.key,
     required this.isArabic,
     required this.onLanguageChanged,
     this.logoAssetPath,
+    this.onBack,
   });
 
   @override
@@ -19,6 +24,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (onBack != null) return _buildWithBackButton();
+
     return AppBar(
       backgroundColor: AppColors.surface,
       elevation: 0,
@@ -35,6 +42,24 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
+  Widget _buildWithBackButton() {
+    return AppBar(
+      backgroundColor: AppColors.surface,
+      elevation: 0,
+      scrolledUnderElevation: 0.5,
+      surfaceTintColor: Colors.transparent,
+      automaticallyImplyLeading: false,
+      titleSpacing: 16,
+      title: Row(
+        children: [
+          _BackButton(onPressed: onBack!, isArabic: isArabic),
+          Expanded(child: Center(child: _buildBrandTitle())),
+          _buildLanguageSwitcher(),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBrandTitle() {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -44,6 +69,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             logoAssetPath!,
             height: 34,
             width: 34,
+            // Decode at display size instead of the full image resolution.
+            cacheWidth: 102,
             fit: BoxFit.contain,
             errorBuilder: (_, __, ___) => _buildFallbackLogo(),
           )
@@ -104,6 +131,43 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             onTap: () => onLanguageChanged(false),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BackButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final bool isArabic;
+
+  const _BackButton({required this.onPressed, required this.isArabic});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.border),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Tooltip(
+            message: isArabic ? 'رجوع' : 'Back',
+            // arrow_back mirrors itself in RTL, so it points right in Arabic.
+            child: const Icon(
+              Icons.arrow_back_rounded,
+              size: 20,
+              color: AppColors.textDark,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -6,4 +6,12 @@ class RouteNames {
   static const String map = '/map';
   static const String settings = '/settings';
   static const String ticket = '/ticket';
+
+  // Booking flow (each expects a TripBooking as `extra`).
+  static const String tripDetails = '/trip-details';
+  static const String bookingSetup = '/booking-setup';
+  static const String bookingReview = '/booking-review';
+  static const String payment = '/payment';
+  static const String bookingSuccess = '/booking-success';
+  static const String ticketDetails = '/ticket-details';
 }
