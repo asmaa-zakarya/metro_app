@@ -68,7 +68,7 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
           ),
           SizedBox(height: 18.h),
           SizedBox(
-            height: 500.h,
+            height: 450.h,
             child: PageView.builder(
               controller: _pageController,
               itemCount: _ticketIds.length,
