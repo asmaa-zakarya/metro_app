@@ -100,7 +100,7 @@ Make sure you have installed:
 
 Download the Android APK to install and try the application:
 
-**[Download Cairo Metro App APK](sha256:c14e0d3fb527c063261eba73af1b7d2458fc43278f017fadad3641e049ad310c)**
+**[Download Cairo Metro App APK](https://github.com/asmaa-zakarya/metro_app/releases/download/v1.0.0/metro_app.apk)**
 
 > Replace the placeholder link above with the actual APK download link after the APK is uploaded.
 
