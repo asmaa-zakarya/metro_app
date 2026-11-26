@@ -120,9 +120,6 @@ Download the Android APK to install and try the application:
 - Enhance the user experience and accessibility.
 - Add further metro-related services and features.
 
-## 📄 Project Note
-
-This project was developed as a team project for learning and practicing mobile application development with Flutter.
 
 ---
 
